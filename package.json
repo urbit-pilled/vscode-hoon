@@ -2,8 +2,8 @@
   "name": "hoon-highlighter",
   "displayName": "Hoon-highlighter",
   "description": "Hoon highlighter using tree-sitter",
-  "repository": "github.com/deeznuts",
-  "publisher": "me",
+  "repository": "github.com/urbit-pilled/vscode-hoon",
+  "publisher": "urbit-pilled",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.78.0"
