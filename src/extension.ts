@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
-import * as parser from 'web-tree-sitter';
+import parser from 'web-tree-sitter';
 import * as jsonc from 'jsonc-parser';
 import * as fs from 'fs';
 import * as path from 'path';
+import rune_dictionary from './hoon-dictionary.json';
+import stdlib_dictionary from './stdlib-dictionary.json';
 
 // Grammar class
 const parserPromise = parser.init();
@@ -260,36 +262,193 @@ class TokensProvider implements vscode.DocumentSemanticTokensProvider, vscode.Ho
         if (!node.isNamed())
             type = '"' + type + '"';
         let parent = node.parent;
-
-        const depth = Math.max(grammar.complexDepth, this.debugDepth);
-        for (let i = 0; i < depth && parent; i++) {
-            let parentType = parent.type;
-            if (!parent.isNamed())
-                parentType = '"' + parentType + '"';
-            type = parentType + " > " + type;
-            parent = parent.parent;
-        }
-
-        // If there is also order complexity
-        if (grammar.complexOrder)
-        {
-            let index = 0;
-            let sibling = node.previousSibling;
-            while (sibling) {
-                if (sibling.type === node.type)
-                    index++;
-                sibling = sibling.previousSibling;
+        if (type == "rune"){
+            type = parent.type;
+            type = type.slice(0,-4);
+            const markdown = new vscode.MarkdownString(rune_dictionary[type]);
+            markdown.isTrusted = true;
+            markdown.supportHtml = true;
+            return {
+                contents: [markdown],
+                range: new vscode.Range(
+                    node.startPosition.row, node.startPosition.column,
+                    node.endPosition.row, node.endPosition.column)
+            };
+        }else if(type == "name"){
+            let markdown;
+            if(parent.type == "term"){
+                markdown = new vscode.MarkdownString(rune_dictionary[parent.type])
+            }else if(parent.type == "knot"){
+                markdown = new vscode.MarkdownString(rune_dictionary[parent.type])
+            }else{
+                type = node.text;
+                markdown = new vscode.MarkdownString(stdlib_dictionary[type]);
             }
-
-            let rindex = -1;
-            sibling = node.nextSibling;
-            while (sibling) {
-                if (sibling.type === node.type)
-                    rindex--;
-                sibling = sibling.nextSibling;
+            markdown.isTrusted = true;
+            markdown.supportHtml = true;
+            return {
+                contents: [markdown],
+                range: new vscode.Range(
+                    node.startPosition.row, node.startPosition.column,
+                    node.endPosition.row, node.endPosition.column)
+            };
+        }else{
+            const irregular_map = {
+                "normalize": "buccab",
+                "wrapFace": "kettis", //both parent and current node
+                "typeUnion": "bucwut",
+                "gateCall": "cencol",
+                "pullArmInDoor": "censig",
+                "resolveWingWithChanges": "centis",
+                "cell": "coltar", // doesn't distinguish between coltar (n args) and colhep (2 args)
+                "nullList": "colsig",
+                "increment": "dotlus",
+                "equality": "dottis",
+                "typeCast": "kethep",
+                "bunt": "kettar",
+                "factoryGate": "ketcol",
+                "twoArgstoN": "miccol",
+                "composeExpressions": "tisgal",
+                "logicalOr": "wutbar",
+                "logicalAnd": "wutpam",
+                "logicalNot": "wutzap",
+                "wingPath": "wing",
+                "knot": "knot",
+                "term": "term",
+                "appendCell": "colhep",
+            };
+            let rune;
+            if(node.type == "aura"){
+                console.log("aura:"+node.text);
+                const aura_map = {
+                    "@": "## @ aura\nempty aura\n",
+                    "@c": "## @c aura\nUTF-32\n#### Example\n```hoon\n~-~45fed\n```",
+                    "@d": "## @d aura\ndate\n",
+                    "@da": "## @da aura\nabsolute date\n#### Example\n```hoon\n~2018.5.14..22.31.46..1435\n```",
+                    "@dr": "## @dr aura\nrelative date (ie, timespan)\n#### Example\n```hoon\n~h5.m30.s12\n```",
+                    "@f": "## @f aura\nLoobean (for compiler, not castable)\n#### Example\n```hoon\n&\n```",
+                    "@i": "## @i aura\nInternet address\n",
+                    "@if": "## @if aura\nIPv4 address\n#### Example\n```hoon\n.195.198.143.90\n```",
+                    "@is": "## @is aura\nIPv6 address\n#### Example\n```hoon\n.0.0.0.0.0.1c.c3c6.8f5a\n```",
+                    "@n": "## @n aura\nnil (for compiler, not castable)\n#### Example\n```hoon\n~\n```",
+                    "@p": "## @p aura\nphonemic base (ship name)\n#### Example\n```hoon\n~sorreg-namtyv\n```",
+                    "@q": "## @q aura\nphonemic base, unscrambled\n#### Example\n```hoon\n.~litsyn-polbel\n```",
+                    "@r": "## @r aura\nIEEE-754 floating-point\n",
+                    "@rh": "## @rh aura\nhalf precision (16 bits)\n#### Example\n```hoon\n.~~3.14\n```",
+                    "@rs": "## @rs aura\nsingle precision (32 bits)\n#### Example\n```hoon\n.6.022141e23\n```",
+                    "@rd": "## @rd aura\ndouble precision (64 bits)\n#### Example\n```hoon\n.~6.02214085774e23\n```",
+                    "@rq": "## @rq aura\nquad precision (128 bits)\n#### Example\n```hoon\n.~~~6.02214085774e23\n```",
+                    "@s": "## @s aura\nsigned integer, sign bit low\n",
+                    "@sb": "## @sb aura\nsigned binary\n#### Example\n```hoon\n--0b11.1000\n```",
+                    "@sd": "## @sd aura\nsigned decimal\n#### Example\n```hoon\n--1.000.056\n```",
+                    "@sv": "## @sv aura\nsigned base32\n#### Example\n```hoon\n-0v1df64.49beg\n```",
+                    "@sw": "## @sw aura\nsigned base64\n#### Example\n```hoon\n--0wbnC.8haTg\n```",
+                    "@sx": "## @sx aura\nsigned hexadecimal\n#### Example\n```hoon\n-0x5f5.e138\n```",
+                    "@t": "## @t aura\nUTF-8 text (cord)\n#### Example\n```hoon\n'howdy'\n```",
+                    "@ta": "## @ta aura\nASCII text (knot)\n#### Example\n```hoon\n~.howdy\n```",
+                    "@tas": "## @tas aura\nASCII text symbol (term)\n#### Example\n```hoon\n%howdy\n```",
+                    "@u": "## @u aura\nunsigned integer\n",
+                    "@ub": "## @ub aura\nunsigned binary\n#### Example\n```hoon\n0b11.1000\n```",
+                    "@ud": "## @ud aura\nunsigned decimal\n#### Example\n```hoon\n1.000.056\n```",
+                    "@uv": "## @uv aura\nunsigned base32\n#### Example\n```hoon\n0v1df64.49beg\n```",
+                    "@uw": "## @uw aura\nunsigned base64\n#### Example\n```hoon\n0wbnC.8haTg\n```",
+                    "@ux": "## @ux aura\nunsigned hexadecimal\n#### Example\n```hoon\n0x5f5.e138\n```",
+                    "@udD": "## @udD aura\nunsigned single-byte (8-bit) decimal",
+                    "@tD": "## @tD aura\n8-bit ASCII text",
+                    "@rhE": "## @rhE aura\nhalf-precision (16-bit) floating-point number",
+                    "@uxG": "## @uxG aura\nunsigned 64-bit hexadecimal",
+                    "@uvJ": "## @uvJ aura\nunsigned, 512-bit integer (frequently used for entropy)",
+                }
+                const markdown = new vscode.MarkdownString(aura_map[node.text]);
+                markdown.isTrusted = true;
+                markdown.supportHtml = true;
+                return {
+                    contents: [markdown],
+                    range: new vscode.Range(
+                        node.startPosition.row, node.startPosition.column,
+                        node.endPosition.row, node.endPosition.column)
+                };
+            }else if(node.type == "tapeOrCord"){
+                if(node.text.startsWith('"')){
+                    rune = "tape";
+                }else{
+                    rune = "cord";
+                }
+                const markdown = new vscode.MarkdownString(rune_dictionary[rune]);
+                markdown.isTrusted = true;
+                markdown.supportHtml = true;
+                return {
+                    contents: [markdown],
+                    range: new vscode.Range(
+                        node.startPosition.row, node.startPosition.column,
+                        node.endPosition.row, node.endPosition.column)
+                };
+            }else if(node.type == "number"){
+                type = "number"
+                if(node.text.startsWith("0x")){
+                    type = `## Hexademical number\nDecimal value: ${parseInt(node.text.replace(".",""), 16)}`;
+                }else if(node.text.startsWith("0b")){
+                    type = `## Binary number\nDecimal value: ${parseInt(node.text.slice(2,).replace(".", ""), 2)}`;
+                }else if(node.text.startsWith("0v")){
+                    type = "unsigned base32"
+                }else if(node.text.startsWith("0w")){
+                    type = "unsigned base64"
+                }
+            }else if(parent.type == "mold"){
+                if(node.text == "~"){
+                    type = "## Mold\nNull mold";
+                }else if(node.text == "*"){
+                    type = "## Mold\nNoun mold";
+                }else if(node.text == "@"){
+                    type = "## Mold\nAtom mold";
+                }else if(node.text == "^"){
+                    type = "## Mold\nCell mold";
+                }else if(node.text == "?"){
+                    type = "## Mold\nLoobean mold";
+                }
+            }else if(parent.type == "addCell"){
+                type = "## Constructs a cell\n```\na + b ==> [%a b]```"
+            }else if(parent.type == "lark" || node.type == "lark"){
+                // type = "";
+                let a;
+                if(node.type == "lark"){
+                    a = node.text;
+                }else{
+                    a = parent.text;
+                }
+                let b = 2**a.length-1 + parseInt(a.replaceAll("-","0").replaceAll("+","1").replaceAll("<", "0").replaceAll(">","1"), 2)
+                type = `## lark\nThe index value of this lark is ${b}`;
+            }else if(parent.type in irregular_map || node.type in irregular_map){
+                if(node.type in irregular_map){
+                    rune = irregular_map[node.type]
+                }else{
+                    rune = irregular_map[parent.type]
+                }
+                const markdown = new vscode.MarkdownString(rune_dictionary[rune]);
+                markdown.isTrusted = true;
+                markdown.supportHtml = true;
+                return {
+                    contents: [markdown],
+                    range: new vscode.Range(
+                        node.startPosition.row, node.startPosition.column,
+                        node.endPosition.row, node.endPosition.column)
+                };
+            }else if(parent.type.slice(0,-4) in rune_dictionary || node.type.slice(0,-4) in rune_dictionary){
+                if(node.type.slice(0,-4) in rune_dictionary){
+                    rune = node.type.slice(0,-4);
+                }else{
+                    rune = parent.type.slice(0,-4);
+                }
+                const markdown = new vscode.MarkdownString(rune_dictionary[rune]);
+                markdown.isTrusted = true;
+                markdown.supportHtml = true;
+                return {
+                    contents: [markdown],
+                    range: new vscode.Range(
+                        node.startPosition.row, node.startPosition.column,
+                        node.endPosition.row, node.endPosition.column)
+                };
             }
-
-            type = type + "[" + index + "]" + "[" + rindex + "]";
         }
 
         return {

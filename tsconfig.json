@@ -3,11 +3,13 @@
         "baseUrl": ".",
         "paths": { "*": ["types/*"] },
 		"module": "commonjs",
-		"target": "es6",
+		"target": "ES2021",
 		"outDir": "out",
-		"lib": ["es6"],
+		"lib": ["ES2021", "WebWorker"],
 		"sourceMap": true,
-		"rootDir": "src"
+		"rootDir": "src",
+		"resolveJsonModule": true,
+		"esModuleInterop": true
 	},
 	"exclude": ["node_modules", ".vscode-test"]
 }

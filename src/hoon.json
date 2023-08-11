@@ -1,0 +1,45 @@
+{
+    "simpleTerms": {
+        "aura": "type",
+        "term": "type",
+
+        "number": "number",
+        "Gap": "comment",
+        "lineComment": "comment",
+        "rune": "control",
+
+        "boolean": "constant",
+        "date": "constant",
+        "lark": "constant",
+        "path": "constant",
+
+        "\"[\"": "punctuation",
+        "\"]\"": "punctuation",
+        "\"(\"": "punctuation",
+        "\")\"": "punctuation",
+        "seriesTerminator": "control",
+        "coreTerminator": "control",
+
+        "string": "string"
+    },
+    
+    "complexTerms": ["name", "composeExpressions"],
+
+    "complexScopes": {
+        "luslusTall > name[0]": "function",
+        "lusbucTall > name": "function",
+        "lusbarTall > name": "function",
+        "lustarTall > name": "function",
+
+        "tiscomTall > name[0]": "variable",
+        "tiscomWide > name[0]": "variable",
+        "tiscomTall > composeExpressions[0]": "variable",
+        "tiscomWide > composeExpressions[0]": "variable",
+        "wrapFace > name": "variable",
+        "wrapFace2 > name": "variable",
+        "kethepTall > name": "type",
+        "kethepWide > name": "type",
+        "kethepTall > composeExpressions[0]": "type",
+        "kethepWide > composeExpressions[0]": "type"
+    }
+}
