@@ -258,7 +258,9 @@ class TokensProvider implements vscode.DocumentSemanticTokensProvider, vscode.Ho
         console.log(node.type + " " + parent.type);
         if (type == "rune"){
             type = parent.type;
-            type = type.slice(0,-4);
+            if(type != "zapzap"){
+                type = type.slice(0,-4);
+            }
             const markdown = new vscode.MarkdownString(rune_dictionary[type]);
             markdown.isTrusted = true;
             markdown.supportHtml = true;
