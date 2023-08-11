@@ -1,0 +1,8 @@
+node_modules
+*.vsix
+.vscode
+.gitattributes
+out
+package-lock.json
+test.hoon
+src/*.py
