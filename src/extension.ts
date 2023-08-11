@@ -267,8 +267,8 @@ class TokensProvider implements vscode.DocumentSemanticTokensProvider, vscode.Ho
             return {
                 contents: [markdown],
                 range: new vscode.Range(
-                    node.startPosition.row, node.startPosition.column,
-                    node.endPosition.row, node.endPosition.column)
+                    parent.startPosition.row, parent.startPosition.column,
+                    parent.endPosition.row, parent.endPosition.column)
             };
         }else if(type == "name"){
             let markdown;
