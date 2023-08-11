@@ -54,51 +54,5 @@
     "eslint": "^8.46.0",
     "typescript": "^5.1.3",
     "vsce": "^2.15.0"
-  },
-  "configuration": {
-    "title": "{Syntax Highlighter} configuration",
-    "properties": {
-      "syntax.highlightComment": {
-        "description": "Enable highlighting of comments",
-        "type": "boolean",
-        "default": true
-      },
-      "syntax.highlightLanguages": {
-        "description": "Enabled languages",
-        "type": "array",
-        "default": [
-          "hoon"
-        ]
-      },
-      "syntax.highlightTerms": {
-        "description": "Enabled terms",
-        "type": "array",
-        "default": [
-          "type",
-          "scope",
-          "function",
-          "variable",
-          "number",
-          "string",
-          "comment",
-          "constant",
-          "directive",
-          "control",
-          "operator",
-          "modifier",
-          "punctuation"
-        ]
-      },
-      "syntax.debugHover": {
-        "description": "Show tool-tip with syntax scope on hover",
-        "type": "boolean",
-        "default": false
-      },
-      "syntax.debugDepth": {
-        "description": "Depth of syntax scope in debug tools",
-        "type": "integer",
-        "default": -1
-      }
-    }
   }
 }
