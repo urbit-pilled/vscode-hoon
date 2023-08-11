@@ -255,6 +255,7 @@ class TokensProvider implements vscode.DocumentSemanticTokensProvider, vscode.Ho
         if (!node.isNamed())
             type = '"' + type + '"';
         let parent = node.parent;
+        console.log(node.type + " " + parent.type);
         if (type == "rune"){
             type = parent.type;
             type = type.slice(0,-4);
@@ -360,6 +361,10 @@ class TokensProvider implements vscode.DocumentSemanticTokensProvider, vscode.Ho
                         node.startPosition.row, node.startPosition.column,
                         node.endPosition.row, node.endPosition.column)
                 };
+            }else if(node.type == "seriesTerminator"){
+                type = rune_dictionary["tistis"];
+            }else if(parent.type == "coreTerminator"){
+                type = rune_dictionary["hephep"];
             }else if(node.type == "tapeOrCord"){
                 if(node.text.startsWith('"')){
                     rune = "tape";
@@ -385,6 +390,16 @@ class TokensProvider implements vscode.DocumentSemanticTokensProvider, vscode.Ho
                     type = "unsigned base32"
                 }else if(node.text.startsWith("0w")){
                     type = "unsigned base64"
+                }
+            }else if(parent.type == "boolean"){
+                if(node.text == "&"){
+                    type = "## Loobean\nIn hoon 0 is `true` and 1 is `false`. `&` is `true`"
+                }else if(node.text == "|"){
+                    type = "## Loobean\nIn hoon 0 is `true` and 1 is `false`. `|` is `false`"
+                }else if(node.text == ".y"){
+                    type = "## Loobean\nIn hoon 0 is `true` and 1 is `false`. `.y` is `true`"
+                }else if(node.text == ".n"){
+                    type = "## Loobean\nIn hoon 0 is `true` and 1 is `false`. `.n` is `false`"
                 }
             }else if(parent.type == "mold"){
                 if(node.text == "~"){
