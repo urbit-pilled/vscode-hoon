@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import parser from 'web-tree-sitter';
-import * as jsonc from 'jsonc-parser';
-import * as fs from 'fs';
 import * as path from 'path';
+
 import rune_dictionary from './hoon-dictionary.json';
 import stdlib_dictionary from './stdlib-dictionary.json';
+import grammarJson from './hoon-highlights.json';
 
 // Grammar class
 const parserPromise = parser.init();
@@ -23,8 +23,8 @@ class Grammar {
     constructor(lang: string) {
         // Parse grammar file
         this.lang = lang;
-        const grammarFile = __dirname + "/../grammars/" + lang + ".json";
-        const grammarJson = jsonc.parse(fs.readFileSync(grammarFile).toString());
+        // const grammarFile = __dirname + "/../grammars/" + lang + ".json";
+        // const grammarJson = jsonc.parse(fs.readFileSync(grammarFile).toString());
         for (const t in grammarJson.simpleTerms)
             this.simpleTerms[t] = grammarJson.simpleTerms[t];
         for (const t in grammarJson.complexTerms)
@@ -192,17 +192,10 @@ class TokensProvider implements vscode.DocumentSemanticTokensProvider, vscode.Ho
             "type", "scope", "function", "variable", "number", "string", "comment",
             "constant", "directive", "control", "operator", "modifier", "punctuation",
         ];
-        const enabledTerms: string[] = vscode.workspace.
-            getConfiguration("syntax").get("highlightTerms");
         availableTerms.forEach(term => {
-            if (enabledTerms.includes(term))
-                this.supportedTerms.push(term);
+            this.supportedTerms.push(term);
         });
-        // if (!vscode.workspace.getConfiguration("syntax").get("highlightComment"))
-        //     if (this.supportedTerms.includes("comment"))
-        //         this.supportedTerms.splice(this.supportedTerms.indexOf("comment"), 1);
-        this.debugDepth = vscode.workspace.getConfiguration("syntax").get("debugDepth");
-        console.log("supported terms:", this.supportedTerms);
+        this.debugDepth = -1;
     }
 
     // Provide document tokens
@@ -462,34 +455,13 @@ class TokensProvider implements vscode.DocumentSemanticTokensProvider, vscode.Ho
 // Extension activation
 export async function activate(context: vscode.ExtensionContext) {
 
-    // Languages
-    let availableGrammars: string[] = [];
-    fs.readdirSync(__dirname + "/../grammars/").forEach(name => {
-        availableGrammars.push(path.basename(name, ".json"));
-    });
-
-    let availableParsers: string[] = [];
-    fs.readdirSync(__dirname + "/../parsers/").forEach(name => {
-        availableParsers.push(path.basename(name, ".wasm"));
-    });
-
-    const enabledLangs: string[] =
-        vscode.workspace.getConfiguration("syntax").get("highlightLanguages");
-    console.log("vscode workspace syntax config", vscode.workspace.getConfiguration("syntax"));
-    let supportedLangs: { language: string }[] = [];
-    availableGrammars.forEach(lang => {
-        if (availableParsers.includes(lang) && enabledLangs.includes(lang))
-            supportedLangs.push({language: lang});
-    });
+    let supportedLangs: { language: string }[] = [{language: "hoon"}];
 
     const engine = new TokensProvider();
     context.subscriptions.push(
         vscode.languages.registerDocumentSemanticTokensProvider(
             supportedLangs, engine, legend));
 
-    // Register debug hover providers
-    // Very useful tool for implementation and fixing of grammars
-    if (vscode.workspace.getConfiguration("syntax").get("debugHover"))
-        for (const lang of supportedLangs)
-            vscode.languages.registerHoverProvider(lang, engine);
+    for (const lang of supportedLangs)
+        vscode.languages.registerHoverProvider(lang, engine);
 }
