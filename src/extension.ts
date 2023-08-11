@@ -319,7 +319,6 @@ class TokensProvider implements vscode.DocumentSemanticTokensProvider, vscode.Ho
             };
             let rune;
             if(node.type == "aura"){
-                console.log("aura:"+node.text);
                 const aura_map = {
                     "@": "## @ aura\nempty aura\n",
                     "@c": "## @c aura\nUTF-32\n#### Example\n```hoon\n~-~45fed\n```",
